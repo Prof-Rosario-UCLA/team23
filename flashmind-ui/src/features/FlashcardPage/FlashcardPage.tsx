@@ -7,6 +7,12 @@ import Flashcard from "../../components/Flashcard/Flashcard";
 export default function FlashcardPage() {
   const [notes, setNotes] = useState("");
   const [cards, setCards] = useState<{ front: string; back: string }[]>([]);
+  const [knownCards, setKnownCards] = useState<
+    { front: string; back: string }[]
+  >([]);
+  const [reviewCards, setReviewCards] = useState<
+    { front: string; back: string }[]
+  >([]);
   const [index, setIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -25,6 +31,8 @@ export default function FlashcardPage() {
       setCards(results);
       setIndex(0);
       setFlipped(false);
+      setKnownCards([]);
+      setReviewCards([]);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -32,9 +40,26 @@ export default function FlashcardPage() {
     }
   }
 
+  function handleDrop(
+    e: React.DragEvent,
+    setter: React.Dispatch<
+      React.SetStateAction<{ front: string; back: string }[]>
+    >
+  ) {
+    e.preventDefault();
+    const data = e.dataTransfer.getData("application/json");
+    if (!data) return;
+    const card = JSON.parse(data) as { front: string; back: string };
+    setter((list) => [...list, card]);
+    // also remove from main cards if present:
+    setCards((all) => all.filter((c) => c.front !== card.front));
+    setFlipped(false);
+  }
+
   return (
-    <div className="grid min-h-screen w-screen grid-cols-2 bg-gray-100">
-      <div className="flex flex-col gap-6 p-10">
+    <main className="grid min-h-screen w-screen grid-cols-2 bg-gray-100">
+      {/* left: notes input */}
+      <section className="flex flex-col gap-6 p-10">
         <header>
           <h1 className="text-4xl font-extrabold leading-tight text-gray-800">
             Flashcard <br /> Generator
@@ -48,20 +73,22 @@ export default function FlashcardPage() {
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           placeholder="Paste lecture notes here…"
-          className="flex-1 resize-none rounded-xl border bg-white p-4 shadow-inner outline-none focus:ring"
+          rows={6}
+          className="resize-none rounded-xl border bg-white p-4 shadow-inner outline-none focus:ring"
         />
 
         <button
           onClick={handleGenerate}
-          disabled={busy}
+          disabled={busy || !notes.trim()}
           className="w-max rounded-full bg-emerald-600 px-8 py-2 font-medium text-white transition hover:bg-emerald-700 disabled:opacity-50"
         >
           {busy ? "Generating…" : "Generate"}
         </button>
         {error && <span className="text-sm text-red-600">{error}</span>}
-      </div>
+      </section>
 
-      <div className="flex flex-col items-center justify-center p-10">
+      {/* right: flashcards + drop zones */}
+      <section className="flex flex-col items-center p-10">
         {cards.length === 0 ? (
           <p className="text-gray-400">Your flashcards will appear here.</p>
         ) : (
@@ -73,7 +100,7 @@ export default function FlashcardPage() {
               onFlip={() => setFlipped(!flipped)}
             />
 
-            <div className="mt-8 flex items-center gap-6">
+            <nav className="mt-8 flex items-center gap-6">
               <button
                 onClick={() => {
                   if (canPrev) setIndex(index - 1);
@@ -97,10 +124,41 @@ export default function FlashcardPage() {
               >
                 <ChevronRight className="h-5 w-5" />
               </button>
-            </div>
+            </nav>
           </>
         )}
-      </div>
-    </div>
+
+        {/* ↓ drop‐zone row ↓ */}
+        <aside className="mt-10 w-full flex gap-6">
+          <section
+            className="flex-1 min-h-[150px] rounded-lg border-2 border-dashed border-green-500 p-4"
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={(e) => handleDrop(e, setKnownCards)}
+            aria-label="Known cards drop zone"
+          >
+            <h2 className="mb-2 font-semibold">I know these</h2>
+            {knownCards.map((c, i) => (
+              <p key={i} className="text-sm">
+                • {c.front}
+              </p>
+            ))}
+          </section>
+
+          <section
+            className="flex-1 min-h-[150px] rounded-lg border-2 border-dashed border-red-500 p-4"
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={(e) => handleDrop(e, setReviewCards)}
+            aria-label="Review later drop zone"
+          >
+            <h2 className="mb-2 font-semibold">Review later</h2>
+            {reviewCards.map((c, i) => (
+              <p key={i} className="text-sm">
+                • {c.front}
+              </p>
+            ))}
+          </section>
+        </aside>
+      </section>
+    </main>
   );
 }

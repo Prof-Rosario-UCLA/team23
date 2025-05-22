@@ -39,24 +39,17 @@ app.post("/api/generate", async (req, res) => {
   const { notes } = result.data;
 
   try {
-    const completion = await openai.chat.completions.create({
+    const response =  await openai.responses.create({
+    //const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
-      messages: [
-        {
-          role: "system",
-          content:
-            'You are a flashcard generator. Return ONLY valid JSON exactly in the form {"cards":[{"front":"","back":""}]}. No markdown, no explanations.',
-        },
-        {
-          role: "user",
-          content: `Create concise Q-A flashcards from these lecture notes:\n\n${notes}`,
-        },
-      ],
-      max_completion_tokens: 600,
+      instructions: 'You are a flashcard generator. Return ONLY valid JSON exactly in the form {"cards":[{"front":"","back":""}]}. No markdown, no explanations.',
+      input: notes,
+      max_output_tokens: 600,
       temperature: 0.5,
+      
     });
-
-    const rawContent = completion.choices[0].message.content ?? "";
+    const rawContent = response.output_text ?? "";
+    //const rawContent = completion.choices[0].message.content ?? "";
     let parsed: unknown;
     try {
       parsed = JSON.parse(rawContent);
