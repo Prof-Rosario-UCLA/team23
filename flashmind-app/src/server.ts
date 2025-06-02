@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
+import cookieParser from "cookie-parser";
 import "dotenv/config";
 import connectDB from "./utils/connectDb";
 import generateRoutes from "./routes/generate.routes";
@@ -14,6 +15,7 @@ const PORT = process.env.PORT || 3001;
 app.use(cors({ origin: "http://localhost:5173", credentials: true }));
 app.use(helmet());
 app.use(express.json());
+app.use(cookieParser());
 
 // Routes
 app.use("/api/generate", generateRoutes);

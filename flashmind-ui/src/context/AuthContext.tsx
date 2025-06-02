@@ -1,34 +1,46 @@
-import React, { createContext, useContext, useState } from "react";
-import { login as loginAPI, signup as signupAPI } from "../api/auth";
+import React, { createContext, useContext, useEffect, useState } from "react";
+import { login as loginAPI, signup as signupAPI, logout as logoutAPI, getMe } from "../api/auth";
 
 type User = { username: string };
 
 type AuthContextType = {
   user: User | null;
+  loading: boolean;
   login: (username: string, password: string) => Promise<void>;
   signup: (username: string, password: string) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getMe()
+      .then((u) => setUser(u))
+      .catch(() => setUser(null))
+      .finally(() => setLoading(false));
+  }, []);
 
   const login = async (username: string, password: string) => {
-    const user = await loginAPI(username, password);
-    setUser(user);
+    const u = await loginAPI(username, password);
+    setUser(u);
   };
 
   const signup = async (username: string, password: string) => {
-    const user = await signupAPI(username, password);
-    setUser(user);
+    const u = await signupAPI(username, password);
+    setUser(u);
   };
 
-  const logout = () => setUser(null);
+  const logout = async () => {
+    await logoutAPI();
+    setUser(null);
+  };
 
   return (
-    <AuthContext.Provider value={{ user, login, signup, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, signup, logout }}>
       {children}
     </AuthContext.Provider>
   );

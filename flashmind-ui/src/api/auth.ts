@@ -1,7 +1,10 @@
-const BASE_URL = "http://localhost:3001/api/auth";
 
-export async function signup(username: string, password: string) {
-  const res = await fetch(`${BASE_URL}/signup`, {
+type AuthResponse = {
+  username: string;
+};
+
+export async function signup(username: string, password: string): Promise<AuthResponse> {
+  const res = await fetch(`/api/auth/signup`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "include",
@@ -9,11 +12,11 @@ export async function signup(username: string, password: string) {
   });
 
   if (!res.ok) throw new Error("Signup failed");
-  return res.json();
+  return await res.json();
 }
 
-export async function login(username: string, password: string) {
-  const res = await fetch(`${BASE_URL}/login`, {
+export async function login(username: string, password: string): Promise<AuthResponse> {
+  const res = await fetch(`/api/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "include",
@@ -21,5 +24,23 @@ export async function login(username: string, password: string) {
   });
 
   if (!res.ok) throw new Error("Login failed");
-  return res.json();
+  return await res.json();
+}
+
+export async function logout(): Promise<void> {
+  await fetch(`/api/auth/logout`, {
+    method: "POST",
+    credentials: "include",
+  });
+}
+
+export async function getMe(): Promise<AuthResponse> {
+  const res = await fetch(`/api/auth/me`, {
+    method: "GET",
+    credentials: "include",
+    cache: "no-store",
+  });
+
+  if (!res.ok) throw new Error("Not authenticated");
+  return await res.json();
 }

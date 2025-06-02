@@ -1,26 +1,29 @@
 import React, { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 type AuthModalProps = {
   isOpen: boolean;
   onClose: () => void;
   anchorRef: React.RefObject<HTMLButtonElement | null>;
-  mode: "login" | "signup";
+  mode?: "login" | "signup";
 };
+
 export default function AuthModal({
   isOpen,
   onClose,
   anchorRef,
+  mode: initialMode = "login",
 }: AuthModalProps) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [mode, setMode] = useState<"login" | "signup">("login");
+  const [mode, setMode] = useState<"login" | "signup">(initialMode);
   const [error, setError] = useState<string | null>(null);
   const panelRef = useRef<HTMLDivElement>(null);
 
   const { login, signup } = useAuth();
+  const navigate = useNavigate();
 
-  // Close on outside click
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (
@@ -41,7 +44,8 @@ export default function AuthModal({
 
   if (!isOpen) return null;
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     setError(null);
     try {
       if (mode === "login") {
@@ -50,6 +54,7 @@ export default function AuthModal({
         await signup(username, password);
       }
       onClose();
+      navigate("/users/me");
     } catch (err: any) {
       setError(err.message || "Something went wrong");
     }
@@ -60,44 +65,48 @@ export default function AuthModal({
       ref={panelRef}
       className="absolute top-14 right-4 bg-white border border-gray-200 rounded shadow-lg w-72 p-4 z-50"
     >
-      <h2 className="text-sm font-semibold mb-2 text-gray-800">
-        {mode === "login" ? "Log In" : "Sign Up"}
-      </h2>
+      <form onSubmit={handleSubmit}>
+        <h2 className="text-sm font-semibold mb-2 text-gray-800">
+          {mode === "login" ? "Log In" : "Sign Up"}
+        </h2>
 
-      <input
-        type="text"
-        placeholder="Username"
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
-        className="w-full mb-2 p-2 text-sm border border-gray-300 rounded"
-      />
-      <input
-        type="password"
-        placeholder="Password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        className="w-full mb-3 p-2 text-sm border border-gray-300 rounded"
-      />
+        <input
+          type="text"
+          placeholder="Username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          className="w-full mb-2 p-2 text-sm border border-gray-300 rounded"
+          required
+        />
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="w-full mb-3 p-2 text-sm border border-gray-300 rounded"
+          required
+        />
 
-      <button
-        onClick={handleSubmit}
-        className="w-full bg-blue-600 text-white text-sm py-2 rounded hover:bg-blue-700"
-      >
-        {mode === "login" ? "Log In" : "Sign Up"}
-      </button>
+        <button
+          type="submit"
+          className="w-full bg-blue-600 text-white text-sm py-2 rounded hover:bg-blue-700"
+        >
+          {mode === "login" ? "Log In" : "Sign Up"}
+        </button>
 
-      {error && (
-        <p className="text-red-500 text-xs mt-2 text-center">{error}</p>
-      )}
+        {error && (
+          <p className="text-red-500 text-xs mt-2 text-center">{error}</p>
+        )}
 
-      <p
-        onClick={() => setMode(mode === "login" ? "signup" : "login")}
-        className="text-xs mt-3 text-blue-600 cursor-pointer text-center"
-      >
-        {mode === "login"
-          ? "Don't have an account? Sign up"
-          : "Already have an account? Log in"}
-      </p>
+        <p
+          onClick={() => setMode(mode === "login" ? "signup" : "login")}
+          className="text-xs mt-3 text-blue-600 cursor-pointer text-center"
+        >
+          {mode === "login"
+            ? "Don't have an account? Sign up"
+            : "Already have an account? Log in"}
+        </p>
+      </form>
     </div>
   );
 }

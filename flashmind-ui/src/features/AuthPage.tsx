@@ -6,7 +6,7 @@ export default function AuthPage() {
   const navigate = useNavigate();
   const { login, signup } = useAuth();
   const [params] = useSearchParams();
-  const mode = params.get("mode") === "login" ? "login" : "signup";
+  const mode = params.get("mode") !== "signup" ? "login" : "signup";
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -20,7 +20,7 @@ export default function AuthPage() {
       } else {
         await signup(username, password);
       }
-      navigate("/");
+      navigate("/users/me");
     } catch (err: any) {
       setError(err.message || "Something went wrong");
     }
@@ -67,7 +67,7 @@ export default function AuthPage() {
           <button
             className="text-green-700 underline"
             onClick={() =>
-              navigate(`/auth?mode=${mode === "login" ? "signup" : "login"}`)
+              navigate(`/?mode=${mode === "login" ? "signup" : "login"}`)
             }
           >
             {mode === "login" ? "Sign up" : "Log in"}
@@ -86,10 +86,6 @@ export default function AuthPage() {
             Continue with Google
           </button>
 
-          <button className="w-full flex items-center justify-center border rounded py-2 hover:bg-gray-100">
-            <img src="/apple-icon.svg" alt="Apple" className="w-5 h-5 mr-2" />
-            Continue with Apple
-          </button>
         </div>
       </div>
     </div>

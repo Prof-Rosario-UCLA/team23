@@ -1,9 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
-import { ChevronDown, ChevronRight, Plus } from "lucide-react";
+import { ChevronDown, ChevronRight, Plus, MessageCircle, FileText, PanelLeftOpen } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { createChat, createLecture } from "../api/chat";
-import { MessageCircle, FileText } from "lucide-react";
-import { PanelLeftOpen } from "lucide-react";
+import { useAuth } from "../context/AuthContext";
 
 export type Flashcard = {
   id: string;
@@ -32,8 +31,6 @@ type SidebarProps = {
   setSelectedChatId: (id: string) => void;
   setSelectedLectureId: (id: string | null) => void;
   setChats: React.Dispatch<React.SetStateAction<ChatSession[]>>;
-  onAddChat: (name: string, tempId: string) => Promise<void>;
-  onAddLecture: (chatId: string, name: string, tempId: string) => Promise<void>;
   setSidebarOpen?: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
@@ -46,6 +43,7 @@ export default function Sidebar({
   setChats,
   setSidebarOpen,
 }: SidebarProps) {
+  const { user } = useAuth();
   const [expandedChats, setExpandedChats] = useState<Set<string>>(new Set());
   const [editingChatId, setEditingChatId] = useState<string | null>(null);
   const [editingLecture, setEditingLecture] = useState<{
@@ -56,19 +54,20 @@ export default function Sidebar({
   const cancelNextLectureSubmitRef = useRef(false);
 
   useEffect(() => {
-    if (newLectureIdRef.current) {
-      for (const chat of chats) {
-        if (chat.lectures.find((l) => l.id === newLectureIdRef.current)) {
-          setEditingLecture({
-            chatId: chat.id,
-            lectureId: newLectureIdRef.current,
-          });
-          newLectureIdRef.current = null;
-          break;
-        }
+  if (newLectureIdRef.current) {
+    for (const chat of chats) {
+      if (chat.lectures.find((l) => l.id === newLectureIdRef.current)) {
+        setEditingLecture({
+          chatId: chat.id,
+          lectureId: newLectureIdRef.current,
+        });
+        newLectureIdRef.current = null;
+        break;
       }
     }
-  }, [chats]);
+  }
+}, [chats]);
+
 
   const handleChatNameSubmit = async (tempId: string, name: string) => {
     const newChat = await createChat(name);
@@ -147,6 +146,8 @@ export default function Sidebar({
     }
     setEditingLecture(null);
   };
+
+  if (!user) return null;
 
   return (
     <nav className="w-full h-full bg-white p-4" aria-label="Chat sidebar">
@@ -309,8 +310,7 @@ export default function Sidebar({
                                     <button
                                       type="button"
                                       onClick={() => {
-                                        cancelNextLectureSubmitRef.current =
-                                          true;
+                                        cancelNextLectureSubmitRef.current = true;
                                         if (lec.id.startsWith("temp-")) {
                                           setChats((prev) =>
                                             prev.map((c) =>
