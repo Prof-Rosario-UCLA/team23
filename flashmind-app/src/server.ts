@@ -5,6 +5,7 @@ import "dotenv/config";
 import connectDB from "./utils/connectDb";
 import generateRoutes from "./routes/generate.routes";
 import chatRoutes from "./routes/chat.routes";
+import authRoutes from "./routes/auth";
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -17,6 +18,7 @@ app.use(express.json());
 // Routes
 app.use("/api/generate", generateRoutes);
 app.use("/api/chats", chatRoutes);
+app.use("/api/auth", authRoutes);
 
 // Start server
 app.listen(PORT, async () => {
