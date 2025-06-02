@@ -1,6 +1,8 @@
 import express from "express";
 import { z } from "zod";
 import { OpenAI } from "openai";
+import redisClient from "../utils/cache";
+import { encode } from "punycode";
 
 const router = express.Router();
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -28,8 +30,16 @@ router.post("/", async (req, res) => {
   }
 
   const { notes } = result.data;
+  const cacheKey = `flashcards_generated:${encodeURIComponent(notes)}`;
 
   try {
+    const cached = await redisClient.get(cacheKey);
+    if (cached) {
+      console.log("Returning cached response");
+      return res.json(JSON.parse(cached));
+    }
+
+
     const response = await openai.responses.create({
       model: "gpt-4o-mini",
       instructions:
@@ -58,6 +68,8 @@ router.post("/", async (req, res) => {
     }
 
     const cards = (parsed as { cards: { front: string; back: string }[] }).cards;
+    await redisClient.set(cacheKey, JSON.stringify({ cards }), {EX: 600});
+
     res.json({ cards });
   } catch (err) {
     console.error("OpenAI error", err);

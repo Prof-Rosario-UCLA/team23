@@ -3,6 +3,8 @@ import Chat from "../models/Chat";
 import Lecture from "../models/Lecture";
 import Flashcard from "../models/Flashcard";
 
+import redisClient from "../utils/cache";
+
 const router = express.Router();
 
 // POST /api/chats -> create a new chat
@@ -10,6 +12,9 @@ router.post("/", async (req, res) => {
   try {
     const { name } = req.body;
     const chat = await Chat.create({ name });
+
+    await redisClient.del("all_chats"); // Invalidate cache after creating a new chat
+
     res.status(201).json({ id: chat._id.toString(), name: chat.name });
   } catch (err) {
     res.status(500).json({ error: "Failed to create chat" });
@@ -18,12 +23,21 @@ router.post("/", async (req, res) => {
 
 // GET /api/chats -> return all chats
 router.get("/", async (_req, res) => {
+  const cacheKey  = "all_chats";
   try {
+    const cached = await redisClient.get(cacheKey);
+    if (cached) {
+      return res.json(JSON.parse(cached));
+    }
+
     const chats = await Chat.find();
     const result = chats.map(chat => ({
       id: chat._id.toString(),
       name: chat.name,
     }));
+
+    await redisClient.set(cacheKey, JSON.stringify(result), { EX: 60 }); //cache for 60 seconds 
+
     res.json(result);
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch chats" });
@@ -54,12 +68,20 @@ router.post("/:chatId/lecture", async (req, res) => {
 router.get("/:chatId/lecture", async (req, res) => {
   try {
     const { chatId } = req.params;
+    const cacheKey  = `lectures_for_chat:${chatId}`;
+    const cached = await redisClient.get(cacheKey);
+    if (cached) {
+      return res.json(JSON.parse(cached));
+    }
+
     const lectures = await Lecture.find({ chatId });
     const result = lectures.map(lec => ({
       id: lec._id.toString(),
       name: lec.name,
       chatId: lec.chatId.toString(),
     }));
+    await redisClient.set(cacheKey, JSON.stringify(result), { EX: 60 }); //cache for 60 seconds
+
     res.json(result);
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch lectures" });
@@ -70,6 +92,13 @@ router.get("/:chatId/lecture", async (req, res) => {
 router.get("/:chatId/lecture/:lectureId/flashcards", async (req, res) => {
   try {
     const { lectureId } = req.params;
+    const cacheKey = `flashcards_for_lecture:${lectureId}`;
+    const cached = await redisClient.get(cacheKey);
+    if (cached) {
+      return res.json(JSON.parse(cached));
+    }
+
+
     const flashcards = await Flashcard.find({ lectureId });
     const result = flashcards.map(fc => ({
       id: fc._id.toString(),
@@ -79,6 +108,8 @@ router.get("/:chatId/lecture/:lectureId/flashcards", async (req, res) => {
       isReview: fc.isReview,
       lectureId: fc.lectureId.toString(),
     }));
+    await redisClient.set(cacheKey, JSON.stringify(result), { EX: 60 }); //cache for 60 seconds
+
     res.json(result);
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch flashcards" });
