@@ -1,6 +1,5 @@
-import React from "react";
-
 interface FlashcardProps {
+  id: string;
   front: string;
   back: string;
   flipped: boolean;
@@ -9,6 +8,7 @@ interface FlashcardProps {
 }
 
 export default function Flashcard({
+  id, 
   front,
   back,
   flipped,
@@ -34,7 +34,8 @@ export default function Flashcard({
       draggable={!small}
       onDragStart={(e) => {
         if (small) return;
-        e.dataTransfer.setData("application/json", JSON.stringify({ front, back }));
+        const cardData = { front, back, id };
+        e.dataTransfer.setData("application/json", JSON.stringify(cardData));
         e.dataTransfer.effectAllowed = "move";
       }}
       onClick={onFlip}
@@ -49,7 +50,7 @@ export default function Flashcard({
       </header>
 
       {!small && (
-        <footer className="pointer-events-none absolute bottom-0 left-0 h-12 w-full bg-red-600 text-center text-sm tracking-wide text-white">
+        <footer className="pointer-events-none absolute bottom-0 left-0 h-12 w-full bg-emerald-600 text-center text-sm tracking-wide text-white">
           <span className="leading-[3rem]">
             {flipped
               ? "Click again for the question \uD83D\uDC48"

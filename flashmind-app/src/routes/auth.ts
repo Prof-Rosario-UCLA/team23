@@ -13,6 +13,13 @@ const COOKIE_OPTIONS = {
   secure: process.env.NODE_ENV === "production", // false in dev
 };
 
+// At top of file
+const isStrongPassword = (password: string): boolean => {
+  const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?#&])[A-Za-z\d@$!%*?#&]{8,}$/;
+  return strongPasswordRegex.test(password);
+};
+
+
 // POST /api/auth/signup
 router.post("/signup", async (req, res) => {
   const { username, password } = req.body;
@@ -24,6 +31,12 @@ router.post("/signup", async (req, res) => {
     if (existingUser)
       return res.status(409).json({ message: "Username taken" });
 
+    if (!isStrongPassword(password)) {
+      return res.status(400).json({
+        message:
+          "Password must be at least 8 characters and include uppercase, lowercase, number, and symbol.",
+      });
+    }
     const passwordHash = await bcrypt.hash(password, 10);
     const newUser = await User.create({ username, passwordHash });
 

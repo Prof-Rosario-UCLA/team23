@@ -3,26 +3,8 @@ import { ChevronDown, ChevronRight, Plus, MessageCircle, FileText, PanelLeftOpen
 import { AnimatePresence, motion } from "framer-motion";
 import { createChat, createLecture } from "../api/chat";
 import { useAuth } from "../context/AuthContext";
+import type { ChatSession } from "../types/types";
 
-export type Flashcard = {
-  id: string;
-  front: string;
-  back: string;
-  lectureId: string;
-};
-
-export type Lecture = {
-  id: string;
-  name: string;
-  notes?: string;
-  flashcards?: Flashcard[];
-};
-
-export type ChatSession = {
-  id: string;
-  name: string;
-  lectures: Lecture[];
-};
 
 type SidebarProps = {
   chats: ChatSession[];

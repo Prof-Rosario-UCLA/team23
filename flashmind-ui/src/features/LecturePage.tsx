@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Flashcard from "../components/Flashcard";
-import { generateDummy } from "../api/flashcards";
-import { getLectures } from "../api/chat";
+import { generateDummy, saveFlashcards, updateFlashcard, getFlashcards } from "../api/flashcards";
+import { getLectures, updateLectureNotes } from "../api/chat";
 
 type FlashcardType = {
+  id: string;
   front: string;
   back: string;
   lectureId: string;
@@ -19,7 +20,7 @@ type Props = {
   lectureName: string;
 };
 
-export default function FlashcardPage({ chatId, chatName, lectureId, lectureName }: Props) {
+export default function LecturePage({ chatId, chatName, lectureId, lectureName }: Props) {
   const [notes, setNotes] = useState("");
   const [cards, setCards] = useState<FlashcardType[]>([]);
   const [knownCards, setKnownCards] = useState<FlashcardType[]>([]);
@@ -29,6 +30,8 @@ export default function FlashcardPage({ chatId, chatName, lectureId, lectureName
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
+  const flashcardSectionRef = useRef<HTMLDivElement>(null);
+
   const current = cards.length > 0 && index >= 0 && index < cards.length ? cards[index] : null;
   const canPrev = index > 0;
   const canNext = index < cards.length - 1;
@@ -37,24 +40,37 @@ export default function FlashcardPage({ chatId, chatName, lectureId, lectureName
     setIndex((prev) => (cards.length === 0 ? 0 : Math.min(prev, cards.length - 1)));
   }, [cards.length]);
 
-  useEffect(() => {
-    const fetchLecture = async () => {
-      try {
-        const lectures = await getLectures(chatId);
-        const lecture = lectures.find((l) => l.id === lectureId);
-        if (!lecture) throw new Error("Lecture not found");
-        setNotes(lecture.notes || "");
-        setCards(lecture.flashcards || []);
-        setIndex(0);
-        setFlipped(false);
-        setKnownCards([]);
-        setReviewCards([]);
-      } catch {
-        setError("Failed to load lecture");
-      }
-    };
+  async function fetchLectureAndCards() {
+    try {
+      const lectures = await getLectures(chatId);
+      const lecture = lectures.find((l) => l.id === lectureId);
+      if (!lecture) throw new Error("Lecture not found");
 
-    fetchLecture();
+      setNotes(lecture.notes || "");
+
+      const allCards = await getFlashcards(chatId, lectureId);
+
+      const known = allCards.filter((c) => c.isKnown && !c.isReview);
+      const review = allCards.filter((c) => c.isReview && !c.isKnown);
+      const regular = allCards.filter((c) => !c.isKnown && !c.isReview);
+
+      setKnownCards(known);
+      setReviewCards(review);
+      setCards(regular);
+      setIndex(0);
+      setFlipped(false);
+
+      setTimeout(() => {
+        flashcardSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 100);
+
+    } catch {
+      setError("Failed to load lecture");
+    }
+  }
+
+  useEffect(() => {
+    fetchLectureAndCards();
   }, [chatId, lectureId]);
 
   async function handleGenerate() {
@@ -62,18 +78,16 @@ export default function FlashcardPage({ chatId, chatName, lectureId, lectureName
     if (!notes.trim()) return;
     setBusy(true);
     try {
-      const results = await generateDummy(notes);
-      const flashcards: FlashcardType[] = results.map((c) => ({
-        ...c,
-        lectureId,
-        isKnown: false,
-        isReview: false,
+      await updateLectureNotes(chatId, lectureId, notes);
+
+      const results: { front: string; back: string }[] = await generateDummy(notes);
+      const flashcards = results.map((c) => ({
+        front: c.front,
+        back: c.back,
       }));
-      setCards(flashcards);
-      setIndex(0);
-      setFlipped(false);
-      setKnownCards([]);
-      setReviewCards([]);
+
+      await saveFlashcards(chatId, lectureId, flashcards);
+      await fetchLectureAndCards();
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -83,31 +97,49 @@ export default function FlashcardPage({ chatId, chatName, lectureId, lectureName
 
   function handleDrop(
     e: React.DragEvent,
-    setter: React.Dispatch<React.SetStateAction<FlashcardType[]>>
+    setter: React.Dispatch<React.SetStateAction<FlashcardType[]>>,
+    box: "known" | "review"
   ) {
     e.preventDefault();
     const data = e.dataTransfer.getData("application/json");
     if (!data) return;
+
     const card = JSON.parse(data) as FlashcardType;
-    setter((list) => (list.some((c) => c.front === card.front) ? list : [...list, card]));
-    setCards((all) => all.filter((c) => c.front !== card.front));
-    setFlipped(false);
+    const isKnown = box === "known";
+    const isReview = box === "review";
+
+    updateFlashcard(chatId, lectureId, card.id, {
+      isKnown,
+      isReview,
+    }).then(() => {
+      setter((list) => (list.some((c) => c.id === card.id) ? list : [...list, card]));
+      setCards((all) => all.filter((c) => c.id !== card.id));
+      setFlipped(false);
+    }).catch((err) => {
+      console.error("Failed to update flashcard", err);
+    });
   }
 
   function handleReAddCard(
     card: FlashcardType,
     remover: React.Dispatch<React.SetStateAction<FlashcardType[]>>
   ) {
-    setCards((prev) => [...prev, card]);
-    remover((prev) => prev.filter((c) => c.front !== card.front));
-    setIndex(cards.length);
-    setFlipped(false);
+    updateFlashcard(chatId, lectureId, card.id, {
+      isKnown: false,
+      isReview: false,
+    }).then(() => {
+      setCards((prev) => [...prev, { ...card, isKnown: false, isReview: false }]);
+      remover((prev) => prev.filter((c) => c.id !== card.id));
+      setIndex(cards.length);
+      setFlipped(false);
+    }).catch((err) => {
+      console.error("Failed to reset flashcard", err);
+    });
   }
 
   return (
     <main className="grid h-screen w-full overflow-hidden grid-rows-2 md:grid-rows-1 md:grid-cols-2 bg-gray-100">
-      {/* Notes Section */}
-      <section className="flex flex-col gap-6 p-6 md:p-10 overflow-hidden">
+      <section className="flex flex-col gap-6 p-6 md:p-10 overflow-hidden min-h-0">
         <header>
           <h1 className="text-4xl font-extrabold leading-tight text-gray-800">📖 {lectureName}</h1>
           <p className="mt-2 font-extrabold text-sm text-gray-500">Chat: {chatName}</p>
@@ -117,8 +149,7 @@ export default function FlashcardPage({ chatId, chatName, lectureId, lectureName
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           placeholder="Paste lecture notes here…"
-          rows={20}
-          className="resize-none rounded-xl border bg-white p-4 shadow-inner outline-none focus:ring flex-1"
+          className="rounded-xl border bg-white p-4 shadow-inner outline-none focus:ring w-full h-[calc(100vh-260px)] md:h-[calc(100vh-280px)] resize-none"
         />
 
         <button
@@ -131,14 +162,14 @@ export default function FlashcardPage({ chatId, chatName, lectureId, lectureName
         {error && <span className="text-sm text-red-600">{error}</span>}
       </section>
 
-      {/* Flashcards & Drop Zones */}
-      <section className="flex flex-col justify-between p-6 md:p-10 overflow-hidden">
-        <div className="flex flex-col items-center">
+      <section className="flex flex-col justify-between p-6 md:p-10 overflow-hidden min-h-0">
+        <div ref={flashcardSectionRef} className="flex flex-col items-center">
           {cards.length === 0 ? (
             <p className="text-gray-400">Your flashcards will appear here.</p>
           ) : (
             current && (
               <Flashcard
+                id={current.id}
                 front={current.front}
                 back={current.back}
                 flipped={flipped}
@@ -176,30 +207,30 @@ export default function FlashcardPage({ chatId, chatName, lectureId, lectureName
 
         <div className="flex flex-col md:flex-row gap-4 mt-6 h-[40%] max-w-full overflow-hidden">
           <section
-            className="flex-1 h-full overflow-auto rounded-2xl border border-green-300 bg-green-50 p-4 shadow-sm transition hover:shadow-md"
+            className="flex-1 overflow-hidden rounded-2xl border border-green-300 bg-green-50 p-4 shadow-sm transition hover:shadow-md max-h-[calc(40vh-56px)]"
             onDragOver={(e) => e.preventDefault()}
-            onDrop={(e) => handleDrop(e, setKnownCards)}
+            onDrop={(e) => handleDrop(e, setKnownCards, "known")}
           >
             <h2 className="mb-2 text-base font-semibold text-green-800">I know these ✅</h2>
-            <div className="grid grid-cols-1 gap-2">
+            <div className="grid grid-cols-1 gap-2 overflow-y-auto max-h-[calc(40vh-96px)] pr-1">
               {knownCards.map((c, i) => (
                 <div key={i} onClick={() => handleReAddCard(c, setKnownCards)}>
-                  <Flashcard front={c.front} back={c.back} flipped={false} onFlip={() => {}} small />
+                  <Flashcard id={c.id} front={c.front} back={c.back} flipped={false} onFlip={() => {}} small />
                 </div>
               ))}
             </div>
           </section>
 
           <section
-            className="flex-1 h-full overflow-auto rounded-2xl border border-red-300 bg-red-50 p-4 shadow-sm transition hover:shadow-md"
+            className="flex-1 overflow-hidden rounded-2xl border border-red-300 bg-red-50 p-4 shadow-sm transition hover:shadow-md max-h-[calc(40vh-56px)]"
             onDragOver={(e) => e.preventDefault()}
-            onDrop={(e) => handleDrop(e, setReviewCards)}
+            onDrop={(e) => handleDrop(e, setReviewCards, "review")}
           >
             <h2 className="mb-2 text-base font-semibold text-red-800">Review later 🕓</h2>
-            <div className="grid grid-cols-1 gap-2">
+            <div className="grid grid-cols-1 gap-2 overflow-y-auto max-h-[calc(40vh-96px)] pr-1">
               {reviewCards.map((c, i) => (
                 <div key={i} onClick={() => handleReAddCard(c, setReviewCards)}>
-                  <Flashcard front={c.front} back={c.back} flipped={false} onFlip={() => {}} small />
+                  <Flashcard id={c.id} front={c.front} back={c.back} flipped={false} onFlip={() => {}} small />
                 </div>
               ))}
             </div>

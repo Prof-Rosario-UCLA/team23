@@ -2,34 +2,38 @@ import { useEffect, useState } from "react";
 import { PanelLeftOpen, PanelRightOpen } from "lucide-react";
 import Navbar from "./components/Navbar";
 import Sidebar from "./components/Sidebar";
-import type { ChatSession } from "./components/Sidebar";
+import type { ChatSession } from "./types/types";
 import LecturePage from "./features/LecturePage";
 import { getChats, createChat, createLecture } from "./api/chat";
 import NoLectureScreen from "./features/NoLectureScreen";
+import NoChatScreen from "./features/NoChatScreen";
+import AuthPage from "./features/AuthPage";
+import CookieBanner from "./components/CookieBanner";
+import { useAuth } from "./context/AuthContext";
 
 export default function App() {
+  const { user, loading } = useAuth();
+
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [chats, setChats] = useState<ChatSession[]>([]);
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
-  const [selectedLectureId, setSelectedLectureId] = useState<string | null>(
-    null
-  );
+  const [selectedLectureId, setSelectedLectureId] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!user) return;
     (async () => {
       try {
         const data = await getChats();
-        if (!Array.isArray(data)) throw new Error("Invalid response");
-
         setChats(data);
 
         if (data.length > 0) {
           setSelectedChatId(data[0].id);
-          if (Array.isArray(data[0].lectures) && data[0].lectures.length > 0) {
+          if (data[0].lectures.length > 0) {
             setSelectedLectureId(data[0].lectures[0].id);
-          } else {
-            setSelectedLectureId(null);
           }
+        } else {
+          setSelectedChatId(null);
+          setSelectedLectureId(null);
         }
       } catch (err) {
         console.error("Failed to fetch chats", err);
@@ -38,24 +42,9 @@ export default function App() {
         setSelectedLectureId(null);
       }
     })();
-  }, []);
+  }, [user]);
 
-  const handleAddChat = async (name: string, tempId: string) => {
-    const newChat = await createChat(name);
-    setChats((prev) =>
-      prev.map((chat) =>
-        chat.id === tempId ? { ...newChat, lectures: [] } : chat
-      )
-    );
-    setSelectedChatId(newChat.id);
-    setSelectedLectureId(null);
-  };
-
-  const handleAddLecture = async (
-    chatId: string,
-    name: string,
-    tempId: string
-  ) => {
+  const handleAddLecture = async (chatId: string, name: string, tempId: string) => {
     const newLecture = await createLecture(chatId, name);
     setChats((prev) =>
       prev.map((chat) =>
@@ -75,11 +64,18 @@ export default function App() {
     setSelectedLectureId(newLecture.id);
   };
 
+  const handleAddChat = async (name: string, tempId: string) => {
+    const newChat = await createChat(name);
+    setChats([{ ...newChat, lectures: [] }]);
+    setSelectedChatId(newChat.id);
+    setSelectedLectureId(null);
+  };
+
   const currentChat = chats.find((c) => c.id === selectedChatId);
 
   return (
     <div className="flex h-screen overflow-hidden">
-      {/* Sidebar (left column) */}
+      {/* Sidebar */}
       <div
         className={`transition-all duration-300 ${
           sidebarOpen ? "w-64" : "w-0"
@@ -91,54 +87,52 @@ export default function App() {
           selectedLectureId={selectedLectureId}
           setSelectedChatId={setSelectedChatId}
           setSelectedLectureId={setSelectedLectureId}
-          onAddChat={handleAddChat}
-          onAddLecture={handleAddLecture}
           setChats={setChats}
           setSidebarOpen={setSidebarOpen}
         />
       </div>
 
-      {/* Main content (right column) */}
+      {/* Main Content */}
       <div className="flex flex-col flex-1 overflow-hidden">
-        {/* Navbar spans only the main area */}
         <Navbar />
+        {user && (
+          <div className="absolute top-4 left-2 z-10">
+            <button
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="rounded bg-gray-200 p-2 shadow hover:bg-gray-300"
+            >
+              {sidebarOpen ? <PanelLeftOpen className="h-4 w-4" /> : <PanelRightOpen className="h-4 w-4" />}
+            </button>
+          </div>
+        )}
 
-        {/* Optional: move the toggle inside the navbar or keep it here */}
-        <div className="absolute top-4 left-2 z-10">
-          <button
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="rounded bg-gray-200 p-2 shadow hover:bg-gray-300"
-          >
-            {sidebarOpen ? (
-              <PanelLeftOpen className="h-4 w-4" />
-            ) : (
-              <PanelRightOpen className="h-4 w-4" />
-            )}
-          </button>
-        </div>
-
-        {/* Main Content */}
-        <div className="flex-1 overflow-auto">
-          {selectedChatId && selectedLectureId ? (
+        <div className="flex-1 overflow-auto bg-gray-100">
+          {loading ? (
+            <div className="h-full flex items-center justify-center">Loading…</div>
+          ) : !user ? (
+            <div className="h-full flex items-center justify-center bg-white">
+              <div className="max-w-md w-full">
+                <AuthPage />
+              </div>
+            </div>
+          ) : chats.length === 0 ? (
+            <NoChatScreen onCreateChat={handleAddChat} />
+          ) : selectedChatId && selectedLectureId ? (
             <LecturePage
               chatId={selectedChatId}
               chatName={currentChat?.name || "Untitled Chat"}
               lectureId={selectedLectureId}
               lectureName={
-                currentChat?.lectures.find((l) => l.id === selectedLectureId)
-                  ?.name || "Untitled Lecture"
+                currentChat?.lectures.find((l) => l.id === selectedLectureId)?.name ||
+                "Untitled Lecture"
               }
             />
-          ) : selectedChatId &&
-            Array.isArray(currentChat?.lectures) &&
-            currentChat.lectures.length === 0 ? (
-            <NoLectureScreen
-              chatId={selectedChatId}
-              onCreateLecture={handleAddLecture}
-            />
+          ) : selectedChatId && currentChat?.lectures.length === 0 ? (
+            <NoLectureScreen chatId={selectedChatId} onCreateLecture={handleAddLecture} />
           ) : null}
         </div>
       </div>
+      {user && <CookieBanner />}
     </div>
   );
 }

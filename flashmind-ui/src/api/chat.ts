@@ -11,6 +11,7 @@ export type Lecture = {
   id: string;
   name: string;
   notes: string;
+  chatId: string;
   flashcards: Flashcard[];
 };
 
@@ -33,7 +34,7 @@ export async function getChats(): Promise<ChatSession[]> {
   const chatsWithLectures: ChatSession[] = await Promise.all(
     rawChats.map(async (chat: any) => {
       try {
-        const lecRes = await fetch(`/api/chats/${chat.id}/lecture`, {
+        const lecRes = await fetch(`/api/chats/${chat.id}/lectures`, {
           credentials: "include",
           cache: "no-store",
         });
@@ -70,7 +71,7 @@ export async function createChat(name: string): Promise<ChatSession> {
 
 // ✅ Create a new lecture in a chat
 export async function createLecture(chatId: string, lecture: string): Promise<Lecture> {
-  const res = await fetch(`/api/chats/${chatId}/lecture`, {
+  const res = await fetch(`/api/chats/${chatId}/lectures`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "include",
@@ -83,7 +84,7 @@ export async function createLecture(chatId: string, lecture: string): Promise<Le
 
 // ✅ Get all lectures for a chat
 export async function getLectures(chatId: string): Promise<Lecture[]> {
-  const res = await fetch(`/api/chats/${chatId}/lecture`, {
+  const res = await fetch(`/api/chats/${chatId}/lectures`, {
     credentials: "include",
     cache: "no-store",
   });
@@ -93,16 +94,18 @@ export async function getLectures(chatId: string): Promise<Lecture[]> {
   return rawLectures.map((lec: any) => ({
     ...lec,
     notes: lec.notes || "",
-    flashcards: [],
+    flashcards: lec.flashcards || [],
   }));
 }
 
-// ✅ Get all flashcards for a lecture
-export async function getFlashcards(chatId: string, lectureId: string): Promise<Flashcard[]> {
-  const res = await fetch(`/api/chats/${chatId}/lecture/${lectureId}/flashcards`, {
-    credentials: "include",
-    cache: "no-store",
+
+
+export async function updateLectureNotes(chatId: string, lectureId: string, notes: string) {
+  const res = await fetch(`/api/chats/${chatId}/lecture/${lectureId}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ notes }),
   });
-  if (!res.ok) throw new Error("Failed to fetch flashcards");
-  return await res.json();
+  if (!res.ok) throw new Error("Failed to update lecture notes");
+  return res.json();
 }

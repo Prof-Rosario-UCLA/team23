@@ -3,12 +3,14 @@ export interface FlashcardDTO {
   lectureId: string;
   front: string;
   back: string;
+  isKnown?: boolean;
+  isReview?: boolean;
 }
 
 export interface LectureDTO {
   id: string;
   chatId: string;
-  title: string;
+  name: string;
   notes: string;
   flashcards?: FlashcardDTO[];
 }

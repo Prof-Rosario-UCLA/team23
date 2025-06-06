@@ -11,7 +11,11 @@ export async function signup(username: string, password: string): Promise<AuthRe
     body: JSON.stringify({ username, password }),
   });
 
-  if (!res.ok) throw new Error("Signup failed");
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.message || "Signup failed");
+  }
+
   return await res.json();
 }
 
