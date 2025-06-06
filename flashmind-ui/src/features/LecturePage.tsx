@@ -139,13 +139,22 @@ export default function LecturePage({ chatId, chatName, lectureId, lectureName }
 
   return (
     <main className="grid h-screen w-full overflow-hidden grid-rows-2 md:grid-rows-1 md:grid-cols-2 bg-gray-100">
-      <section className="flex flex-col gap-6 p-6 md:p-10 overflow-hidden min-h-0">
+      {/* Notes Section */}
+      <section
+        className="flex flex-col gap-6 p-6 md:p-10 overflow-hidden min-h-0"
+        aria-label="Lecture Notes"
+        role="region"
+      >
         <header>
           <h1 className="text-4xl font-extrabold leading-tight text-gray-800">📖 {lectureName}</h1>
           <p className="mt-2 font-extrabold text-sm text-gray-500">Chat: {chatName}</p>
         </header>
 
+        <label htmlFor="notes" className="sr-only">
+          Lecture notes
+        </label>
         <textarea
+          id="notes"
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           placeholder="Paste lecture notes here…"
@@ -159,10 +168,16 @@ export default function LecturePage({ chatId, chatName, lectureId, lectureName }
         >
           {busy ? "Generating…" : "Generate"}
         </button>
+
         {error && <span className="text-sm text-red-600">{error}</span>}
       </section>
 
-      <section className="flex flex-col justify-between p-6 md:p-10 overflow-hidden min-h-0">
+      {/* Flashcards Section */}
+      <section
+        className="flex flex-col justify-between p-6 md:p-10 overflow-hidden min-h-0"
+        aria-label="Flashcards Review"
+        role="region"
+      >
         <div ref={flashcardSectionRef} className="flex flex-col items-center">
           {cards.length === 0 ? (
             <p className="text-gray-400">Your flashcards will appear here.</p>
@@ -179,7 +194,10 @@ export default function LecturePage({ chatId, chatName, lectureId, lectureName }
           )}
 
           {cards.length > 0 && (
-            <div className="mt-6 flex justify-center gap-6">
+            <nav
+              className="mt-6 flex justify-center gap-6"
+              aria-label="Flashcard navigation"
+            >
               <button
                 onClick={() => {
                   if (canPrev) setIndex(index - 1);
@@ -187,10 +205,15 @@ export default function LecturePage({ chatId, chatName, lectureId, lectureName }
                 }}
                 disabled={!canPrev}
                 className="rounded-full bg-gray-200 p-3 text-gray-600 hover:bg-gray-300 disabled:opacity-40"
+                aria-label="Previous flashcard"
               >
                 <ChevronLeft className="h-5 w-5" />
               </button>
-              <span className="text-sm text-gray-600">{index + 1} / {cards.length}</span>
+
+              <span className="text-sm text-gray-600" aria-live="polite">
+                {index + 1} / {cards.length}
+              </span>
+
               <button
                 onClick={() => {
                   if (canNext) setIndex(index + 1);
@@ -198,25 +221,34 @@ export default function LecturePage({ chatId, chatName, lectureId, lectureName }
                 }}
                 disabled={!canNext}
                 className="rounded-full bg-gray-900 p-3 text-white hover:bg-gray-800 disabled:opacity-40"
+                aria-label="Next flashcard"
               >
                 <ChevronRight className="h-5 w-5" />
               </button>
-            </div>
+            </nav>
           )}
         </div>
 
+        {/* Known & Review Sections */}
         <div className="flex flex-col md:flex-row gap-4 mt-6 h-[40%] max-w-full overflow-hidden">
           <section
             className="flex-1 overflow-hidden rounded-2xl border border-green-300 bg-green-50 p-4 shadow-sm transition hover:shadow-md max-h-[calc(40vh-56px)]"
             onDragOver={(e) => e.preventDefault()}
             onDrop={(e) => handleDrop(e, setKnownCards, "known")}
+            aria-label="Known flashcards"
+            role="region"
           >
             <h2 className="mb-2 text-base font-semibold text-green-800">I know these ✅</h2>
             <div className="grid grid-cols-1 gap-2 overflow-y-auto max-h-[calc(40vh-96px)] pr-1">
-              {knownCards.map((c, i) => (
-                <div key={i} onClick={() => handleReAddCard(c, setKnownCards)}>
+              {knownCards.map((c) => (
+                <button
+                  key={c.id}
+                  onClick={() => handleReAddCard(c, setKnownCards)}
+                  className="text-left"
+                  aria-label={`Re-add flashcard ${c.front}`}
+                >
                   <Flashcard id={c.id} front={c.front} back={c.back} flipped={false} onFlip={() => {}} small />
-                </div>
+                </button>
               ))}
             </div>
           </section>
@@ -225,13 +257,20 @@ export default function LecturePage({ chatId, chatName, lectureId, lectureName }
             className="flex-1 overflow-hidden rounded-2xl border border-red-300 bg-red-50 p-4 shadow-sm transition hover:shadow-md max-h-[calc(40vh-56px)]"
             onDragOver={(e) => e.preventDefault()}
             onDrop={(e) => handleDrop(e, setReviewCards, "review")}
+            aria-label="Review flashcards"
+            role="region"
           >
             <h2 className="mb-2 text-base font-semibold text-red-800">Review later 🕓</h2>
             <div className="grid grid-cols-1 gap-2 overflow-y-auto max-h-[calc(40vh-96px)] pr-1">
-              {reviewCards.map((c, i) => (
-                <div key={i} onClick={() => handleReAddCard(c, setReviewCards)}>
+              {reviewCards.map((c) => (
+                <button
+                  key={c.id}
+                  onClick={() => handleReAddCard(c, setReviewCards)}
+                  className="text-left"
+                  aria-label={`Re-add flashcard ${c.front}`}
+                >
                   <Flashcard id={c.id} front={c.front} back={c.back} flipped={false} onFlip={() => {}} small />
-                </div>
+                </button>
               ))}
             </div>
           </section>

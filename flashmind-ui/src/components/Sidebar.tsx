@@ -5,7 +5,6 @@ import { createChat, createLecture } from "../api/chat";
 import { useAuth } from "../context/AuthContext";
 import type { ChatSession } from "../types/types";
 
-
 type SidebarProps = {
   chats: ChatSession[];
   selectedChatId: string | null;
@@ -36,20 +35,19 @@ export default function Sidebar({
   const cancelNextLectureSubmitRef = useRef(false);
 
   useEffect(() => {
-  if (newLectureIdRef.current) {
-    for (const chat of chats) {
-      if (chat.lectures.find((l) => l.id === newLectureIdRef.current)) {
-        setEditingLecture({
-          chatId: chat.id,
-          lectureId: newLectureIdRef.current,
-        });
-        newLectureIdRef.current = null;
-        break;
+    if (newLectureIdRef.current) {
+      for (const chat of chats) {
+        if (chat.lectures.find((l) => l.id === newLectureIdRef.current)) {
+          setEditingLecture({
+            chatId: chat.id,
+            lectureId: newLectureIdRef.current,
+          });
+          newLectureIdRef.current = null;
+          break;
+        }
       }
     }
-  }
-}, [chats]);
-
+  }, [chats]);
 
   const handleChatNameSubmit = async (tempId: string, name: string) => {
     const newChat = await createChat(name);
@@ -178,10 +176,11 @@ export default function Sidebar({
                 exit={{ opacity: 0, x: -12 }}
                 transition={{ duration: 0.5 }}
               >
-                <section>
-                  <div
-                    role="button"
-                    tabIndex={0}
+                <div>
+                  <button
+                    type="button"
+                    aria-expanded={expanded}
+                    aria-controls={`chat-${chat.id}-lectures`}
                     onClick={() => {
                       const copy = new Set(expandedChats);
                       copy.has(chat.id)
@@ -189,16 +188,7 @@ export default function Sidebar({
                         : copy.add(chat.id);
                       setExpandedChats(copy);
                     }}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        const copy = new Set(expandedChats);
-                        copy.has(chat.id)
-                          ? copy.delete(chat.id)
-                          : copy.add(chat.id);
-                        setExpandedChats(copy);
-                      }
-                    }}
-                    className={`flex items-center justify-between px-2 py-1 rounded-md cursor-pointer transition ${
+                    className={`flex w-full items-center justify-between px-2 py-1 rounded-md transition ${
                       selectedChatId === chat.id
                         ? "bg-gray-100 font-semibold text-black"
                         : "hover:bg-gray-100 text-gray-800"
@@ -244,16 +234,18 @@ export default function Sidebar({
                     ) : (
                       <ChevronRight className="w-4 h-4" />
                     )}
-                  </div>
+                  </button>
 
                   <AnimatePresence initial={false}>
                     {expanded && (
                       <motion.ul
+                        id={`chat-${chat.id}-lectures`}
                         className="pl-4"
                         initial={{ opacity: 0, x: -12 }}
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: -12 }}
                         transition={{ duration: 0.5, ease: "easeInOut" }}
+                        aria-label={`Lectures for chat ${chat.name}`}
                       >
                         <AnimatePresence>
                           {chat.lectures.map((lec) => {
@@ -383,7 +375,7 @@ export default function Sidebar({
                       </motion.ul>
                     )}
                   </AnimatePresence>
-                </section>
+                </div>
               </motion.li>
             );
           })}

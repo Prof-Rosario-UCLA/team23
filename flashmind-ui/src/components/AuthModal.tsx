@@ -19,7 +19,7 @@ export default function AuthModal({
   const [password, setPassword] = useState("");
   const [mode, setMode] = useState<"login" | "signup">(initialMode);
   const [error, setError] = useState<string | null>(null);
-  const panelRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLElement>(null);
 
   const { login, signup } = useAuth();
   const navigate = useNavigate();
@@ -61,52 +61,64 @@ export default function AuthModal({
   };
 
   return (
-    <div
+    <section
       ref={panelRef}
       className="absolute top-14 right-4 bg-white border border-gray-200 rounded shadow-lg w-72 p-4 z-50"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="auth-modal-heading"
     >
       <form onSubmit={handleSubmit}>
-        <h2 className="text-sm font-semibold mb-2 text-gray-800">
-          {mode === "login" ? "Log In" : "Sign Up"}
-        </h2>
+        <header>
+          <h2
+            id="auth-modal-heading"
+            className="text-sm font-semibold mb-2 text-gray-800"
+          >
+            {mode === "login" ? "Log In" : "Sign Up"}
+          </h2>
+        </header>
 
-        <input
-          type="text"
-          placeholder="Username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          className="w-full mb-2 p-2 text-sm border border-gray-300 rounded"
-          required
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full mb-3 p-2 text-sm border border-gray-300 rounded"
-          required
-        />
+        <main>
+          <input
+            type="text"
+            placeholder="Username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            className="w-full mb-2 p-2 text-sm border border-gray-300 rounded"
+            required
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full mb-3 p-2 text-sm border border-gray-300 rounded"
+            required
+          />
+        </main>
 
-        <button
-          type="submit"
-          className="w-full bg-blue-600 text-white text-sm py-2 rounded hover:bg-blue-700"
-        >
-          {mode === "login" ? "Log In" : "Sign Up"}
-        </button>
+        <footer>
+          <button
+            type="submit"
+            className="w-full bg-blue-600 text-white text-sm py-2 rounded hover:bg-blue-700"
+          >
+            {mode === "login" ? "Log In" : "Sign Up"}
+          </button>
 
-        {error && (
-          <p className="text-red-500 text-xs mt-2 text-center">{error}</p>
-        )}
+          {error && (
+            <p className="text-red-500 text-xs mt-2 text-center">{error}</p>
+          )}
 
-        <p
-          onClick={() => setMode(mode === "login" ? "signup" : "login")}
-          className="text-xs mt-3 text-blue-600 cursor-pointer text-center"
-        >
-          {mode === "login"
-            ? "Don't have an account? Sign up"
-            : "Already have an account? Log in"}
-        </p>
+          <p
+            onClick={() => setMode(mode === "login" ? "signup" : "login")}
+            className="text-xs mt-3 text-blue-600 cursor-pointer text-center"
+          >
+            {mode === "login"
+              ? "Don't have an account? Sign up"
+              : "Already have an account? Log in"}
+          </p>
+        </footer>
       </form>
-    </div>
+    </section>
   );
 }

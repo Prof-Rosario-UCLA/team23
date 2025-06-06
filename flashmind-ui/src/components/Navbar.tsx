@@ -6,7 +6,7 @@ export default function Navbar() {
   const { user, logout } = useAuth();
   const [showMenu, setShowMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-  const avatarRef = useRef<HTMLDivElement>(null);
+  const avatarRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -24,36 +24,43 @@ export default function Navbar() {
   }, []);
 
   return (
-    <nav className="w-full h-14 px-4 flex items-center justify-between border-b shadow-sm bg-white relative">
+    <header className="w-full h-14 px-4 flex items-center justify-between border-b shadow-sm bg-white relative">
       <div className="text-xl font-bold text-gray-800">FlashMind</div>
 
-      <div className="flex items-center gap-3 relative">
+      <nav className="flex items-center gap-3 relative" aria-label="Primary navigation">
         {!user ? (
-          <>
-            <Link to="/auth?mode=login">
-              <button className="px-4 py-1.5 text-sm rounded-full bg-black text-white hover:cursor-pointer hover:bg-gray-900">
-                Log in
-              </button>
-            </Link>
-            <Link to="/auth?mode=signup">
-              <button className="px-4 py-1.5 text-sm rounded-full border border-gray-300 hover:cursor-pointer hover:bg-gray-100">
-                Sign up
-              </button>
-            </Link>
-          </>
+          <ul className="flex items-center gap-3">
+            <li>
+              <Link to="/auth?mode=login">
+                <button className="px-4 py-1.5 text-sm rounded-full bg-black text-white hover:bg-gray-900">
+                  Log in
+                </button>
+              </Link>
+            </li>
+            <li>
+              <Link to="/auth?mode=signup">
+                <button className="px-4 py-1.5 text-sm rounded-full border border-gray-300 hover:bg-gray-100">
+                  Sign up
+                </button>
+              </Link>
+            </li>
+          </ul>
         ) : (
           <>
-            <div
+            <button
               ref={avatarRef}
               className="w-9 h-9 rounded-full bg-gray-800 text-white flex items-center justify-center font-semibold cursor-pointer hover:opacity-90"
               title={user.username}
               onClick={() => setShowMenu((prev) => !prev)}
+              aria-haspopup="true"
+              aria-expanded={showMenu}
+              aria-label="User menu"
             >
               {user.username.charAt(0).toUpperCase()}
-            </div>
+            </button>
 
             {showMenu && (
-              <div
+              <menu
                 ref={menuRef}
                 className="absolute right-0 top-12 w-48 bg-white border border-gray-200 rounded shadow-md p-3 z-50"
               >
@@ -62,15 +69,15 @@ export default function Navbar() {
                 </div>
                 <button
                   onClick={logout}
-                  className="w-full text-left px-3 py-1.5 text-sm rounded hover:bg-gray-100 text-red-600 hover:cursor-pointer"
+                  className="w-full text-left px-3 py-1.5 text-sm rounded hover:bg-gray-100 text-red-600"
                 >
                   Log out
                 </button>
-              </div>
+              </menu>
             )}
           </>
         )}
-      </div>
-    </nav>
+      </nav>
+    </header>
   );
 }
