@@ -17,7 +17,12 @@ export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [chats, setChats] = useState<ChatSession[]>([]);
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
-  const [selectedLectureId, setSelectedLectureId] = useState<string | null>(null);
+  const [selectedLectureId, setSelectedLectureId] = useState<string | null>(
+    null
+  );
+
+  //PWA
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
 
   useEffect(() => {
     if (!user) return;
@@ -44,7 +49,22 @@ export default function App() {
     })();
   }, [user]);
 
-  const handleAddLecture = async (chatId: string, name: string, tempId: string) => {
+  //PWA
+  useEffect(() => {
+    const updateOnlineStatus = () => setIsOnline(navigator.onLine);
+    window.addEventListener("online", updateOnlineStatus);
+    window.addEventListener("offline", updateOnlineStatus);
+    return () => {
+      window.removeEventListener("online", updateOnlineStatus);
+      window.removeEventListener("offline", updateOnlineStatus);
+    };
+  }, []);
+
+  const handleAddLecture = async (
+    chatId: string,
+    name: string,
+    tempId: string
+  ) => {
     const newLecture = await createLecture(chatId, name);
     setChats((prev) =>
       prev.map((chat) =>
@@ -64,7 +84,7 @@ export default function App() {
     setSelectedLectureId(newLecture.id);
   };
 
-  const handleAddChat = async (name: string, tempId: string) => {
+  const handleAddChat = async (name: string) => {
     const newChat = await createChat(name);
     setChats([{ ...newChat, lectures: [] }]);
     setSelectedChatId(newChat.id);
@@ -75,6 +95,11 @@ export default function App() {
 
   return (
     <div className="flex h-screen overflow-hidden">
+      {!isOnline && (
+        <div className="fixed top-0 left-0 w-full z-50 bg-yellow-200 text-yellow-900 text-center py-2 shadow">
+          Attempting to fetch data... (You are offline)
+        </div>
+      )}
       {/* Sidebar */}
       <div
         className={`transition-all duration-300 ${
@@ -101,14 +126,20 @@ export default function App() {
               onClick={() => setSidebarOpen(!sidebarOpen)}
               className="rounded bg-gray-200 p-2 shadow hover:bg-gray-300"
             >
-              {sidebarOpen ? <PanelLeftOpen className="h-4 w-4" /> : <PanelRightOpen className="h-4 w-4" />}
+              {sidebarOpen ? (
+                <PanelLeftOpen className="h-4 w-4" />
+              ) : (
+                <PanelRightOpen className="h-4 w-4" />
+              )}
             </button>
           </div>
         )}
 
         <div className="flex-1 overflow-auto bg-gray-100">
           {loading ? (
-            <div className="h-full flex items-center justify-center">Loading…</div>
+            <div className="h-full flex items-center justify-center">
+              Loading…
+            </div>
           ) : !user ? (
             <div className="h-full flex items-center justify-center bg-white">
               <div className="max-w-md w-full">
@@ -123,12 +154,15 @@ export default function App() {
               chatName={currentChat?.name || "Untitled Chat"}
               lectureId={selectedLectureId}
               lectureName={
-                currentChat?.lectures.find((l) => l.id === selectedLectureId)?.name ||
-                "Untitled Lecture"
+                currentChat?.lectures.find((l) => l.id === selectedLectureId)
+                  ?.name || "Untitled Lecture"
               }
             />
           ) : selectedChatId && currentChat?.lectures.length === 0 ? (
-            <NoLectureScreen chatId={selectedChatId} onCreateLecture={handleAddLecture} />
+            <NoLectureScreen
+              chatId={selectedChatId}
+              onCreateLecture={handleAddLecture}
+            />
           ) : null}
         </div>
       </div>

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
@@ -27,7 +27,10 @@ export default function Navbar() {
     <header className="w-full h-14 px-4 flex items-center justify-between border-b shadow-sm bg-white relative">
       <div className="text-xl font-bold text-gray-800">FlashMind</div>
 
-      <nav className="flex items-center gap-3 relative" aria-label="Primary navigation">
+      <nav
+        className="flex items-center gap-3 relative"
+        aria-label="Primary navigation"
+      >
         {!user ? (
           <ul className="flex items-center gap-3">
             <li>
