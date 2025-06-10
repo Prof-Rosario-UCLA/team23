@@ -1,7 +1,8 @@
 // src/utils/cache.ts
 import { createClient } from "redis";
 
-const REDIS_URL = process.env.REDIS_URL ?? "redis://127.0.0.1:6379";
+const REDIS_URL = process.env.REDIS_URL;
+if (!REDIS_URL) throw new Error("REDIS_URL not set");
 
 // 1) Create and configure a Redis client
 const redisClient = createClient({ url: REDIS_URL });

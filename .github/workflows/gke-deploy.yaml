@@ -1,0 +1,29 @@
+jobs:
+  job_id:
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+    steps:
+    - id: 'auth'
+      uses: 'google-github-actions/auth@v2'
+      with:
+        workload_identity_provider: 'projects/123456789/locations/global/workloadIdentityPools/my-pool/providers/my-provider'
+
+    - name: 'deploy with gke-deploy cli'
+      uses: 'google-github-actions/deploy-gke-container@v0.1'
+      with:
+        image: 'us-west1-docker.pkg.dev/cs144-25s-team23/flashmind/flashmind-full:latest'
+        app_name: 'flashmind'
+        region: 'us-west1'
+        cluster_name: 'flashmind-cluster'
+        project_id: 'cs144-25s-team23'
+        namespace: 'my-namespace'
+        expose: '8000'
+        k8s_manifests: 'configs'
+    
+    - name: 'get-deployments'
+      shell: bash
+      run: |
+        kubectl get pods -n my-namespace
+        kubectl get deployment -n my-namespace

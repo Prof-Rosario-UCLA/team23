@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flashmind
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: flashmind
+  template:
+    metadata:
+      labels:
+        app: flashmind
+    spec:
+      containers:
+        - name: backend
+          image: us-west1-docker.pkg.dev/cs144-25s-team23/flashmind/flashmind-full:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3001
+          env:
+            - name: MONGODB_URI
+              valueFrom:
+                secretKeyRef:
+                  name: flashmind-secrets
+                  key: MONGODB_URI
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: flashmind-secrets
+                  key: OPENAI_API_KEY
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: flashmind-secrets
+                  key: JWT_SECRET
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: flashmind-secrets
+                  key: REDIS_URL
