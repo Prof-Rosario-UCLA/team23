@@ -1,0 +1,13 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00c6ff;stop-opacity:1"></stop>
+      <stop offset="100%" style="stop-color:#0072ff;stop-opacity:1"></stop>
+    </linearGradient>
+  </defs>
+  <g transform="translate(50, 30)">
+    <path d="M50 0 C35 10, 35 40, 50 50 C30 55, 30 85, 50 90 C40 100, 45 120, 60 115 C70 130, 90 120, 85 100 C105 95, 105 65, 85 60 C105 50, 105 10, 80 15 C75 0, 55 -5, 50 0 Z" fill="url(#grad)"></path>
+    <polygon points="60,60 75,60 65,80 80,80 60,110 70,85 55,85" fill="#ffffff"></polygon>
+  </g>
+  <text x="100" y="180" font-family="Verdana" font-size="18" fill="#1e1e2f" text-anchor="middle">FlashMind</text>
+</svg>

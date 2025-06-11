@@ -25,7 +25,21 @@ export default function Navbar() {
 
   return (
     <header className="w-full h-14 px-4 flex items-center justify-between border-b shadow-sm bg-white relative">
-      <div className="text-xl font-bold text-gray-800">FlashMind</div>
+      <div className="flex items-center gap-2">
+        <svg className="w-8 h-8" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#00c6ff" />
+              <stop offset="100%" stopColor="#0072ff" />
+            </linearGradient>
+          </defs>
+          <g transform="translate(50, 30)">
+            <path d="M50 0 C35 10, 35 40, 50 50 C30 55, 30 85, 50 90 C40 100, 45 120, 60 115 C70 130, 90 120, 85 100 C105 95, 105 65, 85 60 C105 50, 105 10, 80 15 C75 0, 55 -5, 50 0 Z" fill="url(#grad)" />
+            <polygon points="60,60 75,60 65,80 80,80 60,110 70,85 55,85" fill="#ffffff"/>
+          </g>
+        </svg>
+        <span className="text-xl font-bold text-gray-800">FlashMind</span>
+      </div>
 
       <nav
         className="flex items-center gap-3 relative"
