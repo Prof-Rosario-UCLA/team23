@@ -42,7 +42,7 @@ router.get("/", async (req, res) => {
       name: chat.name,
     }));
 
-    await redisClient.set(cacheKey, JSON.stringify(result), { EX: 60 });
+    await redisClient.set(cacheKey, JSON.stringify(result), { EX: 600 });
     res.json(result);
   } catch {
     res.status(500).json({ error: "Failed to fetch chats" });
@@ -98,7 +98,7 @@ router.get("/:chatId/lectures", async (req, res) => {
       chatId: lec.chatId.toString(),
     }));
 
-    await redisClient.set(cacheKey, JSON.stringify(result), { EX: 60 });
+    await redisClient.set(cacheKey, JSON.stringify(result), { EX: 600 });
     res.json(result);
   } catch {
     res.status(500).json({ error: "Failed to fetch lectures" });
@@ -141,7 +141,7 @@ router.get("/:chatId/lecture/:lectureId", async (req, res) => {
       })),
     };
 
-    await redisClient.set(cacheKey, JSON.stringify(result), { EX: 60 });
+    await redisClient.set(cacheKey, JSON.stringify(result), { EX: 600 });
     res.json(result);
   } catch {
     res.status(500).json({ error: "Failed to fetch lecture" });
@@ -174,7 +174,7 @@ router.get("/:chatId/lecture/:lectureId/flashcards", async (req, res) => {
       lectureId: fc.lectureId.toString(),
     }));
 
-    await redisClient.set(cacheKey, JSON.stringify(result), { EX: 60 });
+    await redisClient.set(cacheKey, JSON.stringify(result), { EX: 600 });
     res.json(result);
   } catch {
     res.status(500).json({ error: "Failed to fetch flashcards" });
