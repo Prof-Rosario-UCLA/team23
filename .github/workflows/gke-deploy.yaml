@@ -31,7 +31,6 @@ jobs:
         cluster_name: 'flashmind-cluster'
         project_id: 'cs144-25s-team23'
         namespace: 'default'
-        k8s_manifests: 'kubernetes'
     
     - name: 'get-deployments'
       shell: bash
