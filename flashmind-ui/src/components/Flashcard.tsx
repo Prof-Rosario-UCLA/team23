@@ -48,7 +48,7 @@ export default function Flashcard({
       </section>
 
       {!small && (
-        <footer className="pointer-events-none absolute bottom-0 left-0 h-12 w-full bg-emerald-600 text-center text-sm tracking-wide text-white">
+        <footer className="pointer-events-none absolute bottom-0 left-0 h-12 w-full bg-teal-600 text-center text-sm tracking-wide text-white">
           <p className="leading-[3rem]">
             {flipped
               ? "Click again for the question \uD83D\uDC48"
