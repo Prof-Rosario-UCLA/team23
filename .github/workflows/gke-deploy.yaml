@@ -22,8 +22,8 @@ jobs:
       with:
         credentials_json: '${{ secrets.GCP_SA_KEY }}'
 
-    - name: 'deploy with gke-deploy cli'
-      uses: 'google-github-actions/deploy-gke-container@v0.1'
+    - name: Deploy GKE
+      uses: google-github-actions/deploy-gke@v0.0.3
       with:
         image: 'us-west1-docker.pkg.dev/cs144-25s-team23/flashmind/flashmind-full:latest'
         app_name: 'flashmind'
