@@ -37,6 +37,21 @@ steps:
       - apply
       - -f
       - kubernetes/
+    
+  - name: 'gcr.io/cloud-builders/kubectl'
+    id: PatchImage
+    entrypoint: bash
+    env:
+      - 'CLOUDSDK_COMPUTE_ZONE=us-west1-a'
+      - 'CLOUDSDK_CONTAINER_CLUSTER=flashmind-cluster'
+    args:
+      - -c
+      - |
+        # point at the new SHA you just built
+        kubectl set image deployment/flashmind \
+          backend=us-west1-docker.pkg.dev/cs144-25s-team23/flashmind/flashmind:${SHORT_SHA} \
+          --namespace=default
+        kubectl rollout status deployment/flashmind --namespace=default
 
 # Let Cloud Build know this image was built, for automatic garbage collection etc.
 images:
