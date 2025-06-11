@@ -9,7 +9,7 @@ steps:
     args:
       - build
       - -t
-      - us-west1-docker.pkg.dev/cs144-25s-team23/flashmind/flashmind:latest
+      - us-west1-docker.pkg.dev/cs144-25s-team23/flashmind/flashmind:$SHORT_SHA
       - .
 
   # 2) Push to Artifact Registry
@@ -17,19 +17,7 @@ steps:
     id: Push
     args:
       - push
-      - us-west1-docker.pkg.dev/cs144-25s-team23/flashmind/flashmind:latest
-
-  # Rollout restart for latest
-  - name: Rollout restart
-    id: Restart
-    args:
-      - rollout
-      - restart
-      - deployment/flashmind
-      - --namespace=default
-    waitFor:
-      - Deploy     # ensure it runs after your `kubectl apply`
-    entrypoint: kubectl
+      - us-west1-docker.pkg.dev/cs144-25s-team23/flashmind/flashmind:$SHORT_SHA
 
   # 3) Deploy to GKE
   - name: 'gcr.io/cloud-builders/kubectl'
@@ -44,4 +32,4 @@ steps:
 
 # Let Cloud Build know this image was built, for automatic garbage collection etc.
 images:
-  - us-west1-docker.pkg.dev/cs144-25s-team23/flashmind/flashmind:latest
+  - us-west1-docker.pkg.dev/cs144-25s-team23/flashmind/flashmind:$SHORT_SHA
