@@ -101,21 +101,25 @@ export default function App() {
         </div>
       )}
       {/* Sidebar */}
-      <div
-        className={`transition-all duration-300 ${
-          sidebarOpen ? "w-64" : "w-0"
-        } overflow-hidden border-r border-gray-200 bg-white`}
-      >
-        <Sidebar
-          chats={chats}
-          selectedChatId={selectedChatId}
-          selectedLectureId={selectedLectureId}
-          setSelectedChatId={setSelectedChatId}
-          setSelectedLectureId={setSelectedLectureId}
-          setChats={setChats}
-          setSidebarOpen={setSidebarOpen}
-        />
-      </div>
+      {/* Sidebar - only show when user is logged in */}
+      {user && (
+        <div
+          className={`transition-all duration-300 ${
+            sidebarOpen ? "w-64" : "w-0"
+          } overflow-hidden border-r border-gray-200 bg-white`}
+        >
+          <Sidebar
+            chats={chats}
+            selectedChatId={selectedChatId}
+            selectedLectureId={selectedLectureId}
+            setSelectedChatId={setSelectedChatId}
+            setSelectedLectureId={setSelectedLectureId}
+            setChats={setChats}
+            setSidebarOpen={setSidebarOpen}
+          />
+        </div>
+      )}
+
 
       {/* Main Content */}
       <div className="flex flex-col flex-1 overflow-hidden">
