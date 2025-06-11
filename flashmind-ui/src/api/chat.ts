@@ -23,7 +23,7 @@ export type ChatSession = {
 
 // ✅ Fetch all chats and their lectures (without flashcards for performance)
 export async function getChats(): Promise<ChatSession[]> {
-  const res = await fetch("http://34.105.4.82/api/chats", {
+  const res = await fetch("/api/chats", {
     credentials: "include",
     cache: "no-store",
   });
@@ -34,7 +34,7 @@ export async function getChats(): Promise<ChatSession[]> {
   const chatsWithLectures: ChatSession[] = await Promise.all(
     rawChats.map(async (chat: any) => {
       try {
-        const lecRes = await fetch(`http://34.105.4.82/api/chats/${chat.id}/lectures`, {
+        const lecRes = await fetch(`/api/chats/${chat.id}/lectures`, {
           credentials: "include",
           cache: "no-store",
         });
@@ -59,7 +59,7 @@ export async function getChats(): Promise<ChatSession[]> {
 
 // ✅ Create a new chat
 export async function createChat(name: string): Promise<ChatSession> {
-  const res = await fetch("http://34.105.4.82/api/chats", {
+  const res = await fetch("/api/chats", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "include",
@@ -71,7 +71,7 @@ export async function createChat(name: string): Promise<ChatSession> {
 
 // ✅ Create a new lecture in a chat
 export async function createLecture(chatId: string, lecture: string): Promise<Lecture> {
-  const res = await fetch(`http://34.105.4.82/api/chats/${chatId}/lectures`, {
+  const res = await fetch(`/api/chats/${chatId}/lectures`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "include",
@@ -84,7 +84,7 @@ export async function createLecture(chatId: string, lecture: string): Promise<Le
 
 // ✅ Get all lectures for a chat
 export async function getLectures(chatId: string): Promise<Lecture[]> {
-  const res = await fetch(`http://34.105.4.82/api/chats/${chatId}/lectures`, {
+  const res = await fetch(`/api/chats/${chatId}/lectures`, {
     credentials: "include",
     cache: "no-store",
   });
@@ -101,7 +101,7 @@ export async function getLectures(chatId: string): Promise<Lecture[]> {
 
 
 export async function updateLectureNotes(chatId: string, lectureId: string, notes: string) {
-  const res = await fetch(`http://34.105.4.82/api/chats/${chatId}/lecture/${lectureId}`, {
+  const res = await fetch(`/api/chats/${chatId}/lecture/${lectureId}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ notes }),

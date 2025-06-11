@@ -10,6 +10,14 @@ export default defineConfig({
     VitePWA({
       registerType: "autoUpdate",
       includeAssets: ["favicon.svg", "robots.txt"],
+      workbox: {
+        // remove outdated caches on activation
+        cleanupOutdatedCaches: true,
+        // claim clients immediately after SW activation
+        clientsClaim: true,
+        // skipWaiting forces the new SW to activate
+        skipWaiting: true,
+      },
       manifest: {
         name: "Flashmind",
         short_name: "Flashmind",

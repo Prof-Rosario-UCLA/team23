@@ -4,7 +4,7 @@ type AuthResponse = {
 };
 
 export async function signup(username: string, password: string): Promise<AuthResponse> {
-  const res = await fetch(`http://34.105.4.82/api/auth/signup`, {
+  const res = await fetch(`/api/auth/signup`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "include",
@@ -20,7 +20,7 @@ export async function signup(username: string, password: string): Promise<AuthRe
 }
 
 export async function login(username: string, password: string): Promise<AuthResponse> {
-  const res = await fetch(`http://34.105.4.82/api/auth/login`, {
+  const res = await fetch(`/api/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "include",
@@ -32,14 +32,14 @@ export async function login(username: string, password: string): Promise<AuthRes
 }
 
 export async function logout(): Promise<void> {
-  await fetch(`http://34.105.4.82/api/auth/logout`, {
+  await fetch(`/api/auth/logout`, {
     method: "POST",
     credentials: "include",
   });
 }
 
 export async function getMe(): Promise<AuthResponse> {
-  const res = await fetch(`http://34.105.4.82/api/auth/me`, {
+  const res = await fetch(`/api/auth/me`, {
     method: "GET",
     credentials: "include",
     cache: "no-store",

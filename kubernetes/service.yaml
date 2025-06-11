@@ -3,7 +3,7 @@ kind: Service
 metadata:
   name: flashmind
 spec:
-  type: LoadBalancer
+  type: ClusterIP
   selector:
     app: flashmind
   ports:

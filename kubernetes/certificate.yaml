@@ -1,0 +1,7 @@
+apiVersion: networking.gke.io/v1
+kind: ManagedCertificate
+metadata:
+  name: flashmind-cert
+spec:
+  domains:
+    - team23.cs144.org

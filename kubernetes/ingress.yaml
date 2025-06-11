@@ -2,9 +2,12 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: flashmind-ingress
-  namespace: default
-spec:
-  ingressClassName: nginx                # use your IngressClass name here
+  annotations:
+    kubernetes.io/ingress.global-static-ip-name: "flashmind-ip"
+    networking.gke.io/managed-certificates: "flashmind-cert"
+    networking.gke.io/v1beta1.FrontendConfig: "default-redirect-config"
+    networking.gke.io/health-check-path: "/healthz"
+spec:              
   rules:
   - http:
       paths:
@@ -12,13 +15,13 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: flashmind-backend
+            name: flashmind
             port:
               number: 80
       - path: /
         pathType: Prefix
         backend:
           service:
-            name: flashmind-frontend
+            name: flashmind
             port:
               number: 80

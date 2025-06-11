@@ -1,6 +1,6 @@
 import type {Flashcard} from "../types/types";
 export async function generateDummy(notes: string): Promise<{ front: string; back: string }[]> {
-  const res = await fetch("http://34.105.4.82/api/generate", {
+  const res = await fetch("/api/generate", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ notes }),
@@ -13,7 +13,7 @@ export async function generateDummy(notes: string): Promise<{ front: string; bac
 }
 
 export async function generate(notes: string) {
-  const res = await fetch("http://34.105.4.82/api/generate", {
+  const res = await fetch("/api/generate", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ notes }),
@@ -26,7 +26,7 @@ export async function generate(notes: string) {
 }
 
 export async function saveFlashcards(chatId: string, lectureId: string, flashcards: { front: string; back: string }[]) {
-  const res = await fetch(`http://34.105.4.82/api/chats/${chatId}/lecture/${lectureId}/flashcards`, {
+  const res = await fetch(`/api/chats/${chatId}/lecture/${lectureId}/flashcards`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ flashcards }),
@@ -36,7 +36,7 @@ export async function saveFlashcards(chatId: string, lectureId: string, flashcar
 }
 
 export async function updateFlashcard(chatId: string, lectureId: string, flashcardId: string, data: { isKnown: boolean, isReview: boolean }) {
-  const res = await fetch(`http://34.105.4.82/api/chats/${chatId}/lecture/${lectureId}/flashcards/${flashcardId}`, {
+  const res = await fetch(`/api/chats/${chatId}/lecture/${lectureId}/flashcards/${flashcardId}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
@@ -47,7 +47,7 @@ export async function updateFlashcard(chatId: string, lectureId: string, flashca
 }
 
 export async function getFlashcards(chatId: string, lectureId: string): Promise<Flashcard[]> {
-  const res = await fetch(`http://34.105.4.82/api/chats/${chatId}/lecture/${lectureId}/flashcards`, {
+  const res = await fetch(`/api/chats/${chatId}/lecture/${lectureId}/flashcards`, {
     credentials: "include",
     cache: "no-store",
   });
