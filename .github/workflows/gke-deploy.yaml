@@ -25,8 +25,6 @@ jobs:
       uses: google-github-actions/setup-gcloud@v2
       with:
         project_id: cs144-25s-team23
-        service_account_key: ${{ secrets.GCP_SA_KEY }}
-        export_default_credentials: true
 
     - name: Configure Docker
       run: |
@@ -37,7 +35,7 @@ jobs:
       with:
         image: 'us-west1-docker.pkg.dev/cs144-25s-team23/flashmind/flashmind-full:latest'
         app_name: 'flashmind'
-        region: 'us-west1'
+        region: 'us-west1-a'
         cluster_name: 'flashmind-cluster'
         project_id: 'cs144-25s-team23'
         namespace: 'default'
