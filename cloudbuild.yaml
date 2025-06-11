@@ -20,6 +20,11 @@ steps:
     args:
       - push
       - us-west1-docker.pkg.dev/cs144-25s-team23/flashmind/flashmind:$SHORT_SHA
+
+  - name: 'gcr.io/cloud-builders/docker'
+    id: PushLatest
+    args:
+      - push
       - us-west1-docker.pkg.dev/cs144-25s-team23/flashmind/flashmind:latest
 
   # 3) Deploy to GKE
@@ -36,3 +41,4 @@ steps:
 # Let Cloud Build know this image was built, for automatic garbage collection etc.
 images:
   - us-west1-docker.pkg.dev/cs144-25s-team23/flashmind/flashmind:$SHORT_SHA
+  - us-west1-docker.pkg.dev/cs144-25s-team23/flashmind/flashmind:latest
