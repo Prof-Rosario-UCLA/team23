@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: backend
-          image: us-west1-docker.pkg.dev/cs144-25s-team23/flashmind/flashmind-full:latest
+          image: us-west1-docker.pkg.dev/cs144-25s-team23/flashmind/flashmind:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 3001
